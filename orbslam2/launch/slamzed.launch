@@ -1,0 +1,6 @@
+<launch>
+	<arg name="vocab"  default="$(find orbslam2)/config/ORBvoc.bin" />
+	<arg name="slamsettings"  default="$(find orbslam2)/config/zedcam.yaml" />
+	<arg name="dorectify"  default="1" />
+	<node ns="orbslam2" name="orbslam2" pkg="orbslam2" type="stereo" args="$(arg vocab) $(arg slamsettings) $(arg dorectify)" output="screen" />
+</launch>

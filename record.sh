@@ -1,0 +1,1 @@
+rosbag record /velodyne_points /imu /mag --bz2

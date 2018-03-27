@@ -1,0 +1,4 @@
+<launch>
+	<include file="$(find orbslam2)/launch/slamzed.launch"/>
+	<include file="$(find stereopublisherdebug)/launch/driveway.launch"/>
+</launch>

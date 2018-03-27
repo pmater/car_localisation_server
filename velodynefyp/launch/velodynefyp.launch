@@ -1,0 +1,8 @@
+<launch>
+	<include file="$(find velodyne_pointcloud)/launch/VLP16_points.launch">
+		<arg name="calibration" value="$(find velodynefyp)/config/velodyneconfig.yaml"/>
+	</include>
+
+	<include file="$(find loam_velodyne)/launch/loam_velodyne.launch"/>
+
+</launch>
