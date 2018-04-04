@@ -1,10 +1,4 @@
-Install ROS
-
-Clone this repo into the workspace
-
 Install the Velodyne driver: http://wiki.ros.org/velodyne
-
-Clone this repo into the workspace: https://github.com/laboshinl/loam_velodyne
 
 Launch with "roslaunch velodynefyp velodynefyp.launch", which starts the Velodyne driver and LOAM SLAM.
 
