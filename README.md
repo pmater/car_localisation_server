@@ -1,11 +1,10 @@
-# Prereqs
+# General prereqs
 Must install ROS. Also, I recommend you use "catkin build" rather than "catkin_make": http://catkin-tools.readthedocs.io/en/latest/installing.html
 
+# Velodyne prereqs
 sudo apt install ros-kinetic-velodyne
 
-
 # How to install Zed camera driver
-
 Driver is from here: https://github.com/stereolabs/zed-ros-wrapper
 
 Ensure that you pick a release (or pull latest version) that supports the Zed SDK you have installed. Each Zed SDK version requires a specific CUDA version. Changing the version of CUDA requires flashing the relevant JetPack (Full OS reinstall!!!)
