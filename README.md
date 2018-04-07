@@ -17,7 +17,8 @@ Change the CPU architecture at the bottom of car_localisation/orbslam2/CMakeList
 
 Compiling them is as easy as going into their folders, entering "cmake ." then "make". Their .so files are found in their lib folders.
 
-
-
 # Network setup
-On every machine in the network run the command "export ROS_MASTER_URI=http://*******:11311", where the asterisks are replaced by the hostname of the main machine. Can also add this line to the bottom of .bashrc to make it automatic each boot.
+On every machine in the network run the command "export ROS_MASTER_URI=http://192.168.1.1:11311", which is the static IP address of the main server. Can also add this line to the bottom of .bashrc to make it automatic each boot.
+
+# Network explanation
+Unfortunately, every device has been assigned a static IP address due to the limitations in place. The switch can't act as a DHCP server, so every IP address is static. Also, the switch can't act as a DNS server so we can't use convenient host names. I've chosen to use 192.168.1.x IP addresses because the default IP address of the LIDAR is 192.168.1.201, and I want to leave it as default so that in the future it'll be easy for people to connect to. It may be possible to run a DNS and DHCP server on the main computer, but I don't want to dive into that.
