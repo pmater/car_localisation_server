@@ -19,3 +19,5 @@ Compiling them is as easy as going into their folders, entering "cmake ." then "
 
 
 
+# Network setup
+On every machine in the network run the command "export ROS_MASTER_URI=http://*******:11311", where the asterisks are replaced by the hostname of the main machine. Can also add this line to the bottom of .bashrc to make it automatic each boot.
