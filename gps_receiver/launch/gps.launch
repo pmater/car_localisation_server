@@ -1,5 +1,0 @@
- <launch>
-    <node pkg="gps_package" type="gps_pub" name="gps_pub" args="/gps_topic" output="screen"/>
-    <node pkg="gps_package" type="gps_position_tf" name="gps_position_tf" args="/gps_tf"/>
-  </launch>
-

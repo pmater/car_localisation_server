@@ -1,1 +1,1 @@
-rosbag record /velodyne_points /imu /mag --bz2
+rosbag record --lz4 --split --size=512 /velodyne_points /imu /mag
