@@ -26,3 +26,6 @@ Do the same for "export ROS_IP=[WHATEVER THE IP ADDRESS OF THAT COMPUTER IS]"
 
 # Network explanation
 Unfortunately, every device has been assigned a static IP address due to the limitations in place. The switch can't act as a DHCP server, so every IP address is static. Also, the switch can't act as a DNS server so we can't use convenient host names. I've chosen to use 192.168.1.x IP addresses because the default IP address of the LIDAR is 192.168.1.201, and I want to leave it as default so that in the future it'll be easy for people to connect to. It may be possible to run a DNS and DHCP server on the main computer, but I don't want to dive into that.
+
+# Misc
+Main PC may have a secure-boot password or something, which may be "carfyp123".
