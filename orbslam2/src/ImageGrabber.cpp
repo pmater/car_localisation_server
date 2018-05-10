@@ -8,12 +8,13 @@ ImageGrabber::ImageGrabber(ros::NodeHandle& nh, shared_ptr<ORB_SLAM2::System> pS
     mpSLAM = pSLAM;
     posePub = nh.advertise<geometry_msgs::PoseStamped>("pose", 100);
 
-    leftCamSub = make_unique<message_filters::Subscriber<sensor_msgs::Image>>(nh, "/camera/left/image_raw", 10);
-    rightCamSub = make_unique<message_filters::Subscriber<sensor_msgs::Image>>(nh, "/camera/right/image_raw", 10);
+    leftCamSub = make_unique<message_filters::Subscriber<sensor_msgs::Image>>(nh, "/zed/left/image_rect_color", 10);
+    rightCamSub = make_unique<message_filters::Subscriber<sensor_msgs::Image>>(nh, "/zed/right/image_rect_color", 10);
     sync = make_unique<message_filters::Synchronizer<sync_pol>>(sync_pol(10), *leftCamSub, *rightCamSub);
     sync->registerCallback(boost::bind(&ImageGrabber::GrabStereo, this, _1, _2));
 }
 
+double timeLast = 0;
 void ImageGrabber::GrabStereo(const sensor_msgs::ImageConstPtr& msgLeft,const sensor_msgs::ImageConstPtr& msgRight)
 {
     // Copy the ros image message to cv::Mat.
@@ -39,7 +40,8 @@ void ImageGrabber::GrabStereo(const sensor_msgs::ImageConstPtr& msgLeft,const se
         return;
     }
 
-    cout << "Processing: " << cv_ptrLeft->header.seq << endl;
+    cout << "Processing: " << cv_ptrLeft->header.seq << ", " << cv_ptrLeft->header.stamp.toSec() - timeLast << endl;
+    timeLast = cv_ptrLeft->header.stamp.toSec();
 
     cv::Mat transformation;
     if (do_rectify)
