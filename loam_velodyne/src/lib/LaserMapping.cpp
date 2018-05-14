@@ -78,10 +78,10 @@ LaserMapping::LaserMapping(const float& scanPeriod,
         _laserCloudSurfFromMap(new pcl::PointCloud<pcl::PointXYZI>())
 {
   // initialize mapping odometry and odometry tf messages
-  _odomAftMapped.header.frame_id = "/camera_init";
+  _odomAftMapped.header.frame_id = "/loam_init";
   _odomAftMapped.child_frame_id = "/aft_mapped";
 
-  _aftMappedTrans.frame_id_ = "/camera_init";
+  _aftMappedTrans.frame_id_ = "/loam_init";
   _aftMappedTrans.child_frame_id_ = "/aft_mapped";
 
   // initialize frame counter
@@ -200,7 +200,7 @@ bool LaserMapping::setup(ros::NodeHandle& node,
   _subLaserCloudSurfLast = node.subscribe<sensor_msgs::PointCloud2>
       ("/laser_cloud_surf_last", 2, &LaserMapping::laserCloudSurfLastHandler, this);
 
-  _subLaserOdometry = node.subscribe<nav_msgs::Odometry>
+  _subLaserOdometry = node.subscribe<geometry_msgs::PoseWithCovarianceStamped>
       ("/laser_odom_to_init", 5, &LaserMapping::laserOdometryHandler, this);
 
   _subLaserCloudFullRes = node.subscribe<sensor_msgs::PointCloud2>
@@ -377,7 +377,7 @@ void LaserMapping::laserCloudFullResHandler(const sensor_msgs::PointCloud2ConstP
 
 
 
-void LaserMapping::laserOdometryHandler(const nav_msgs::Odometry::ConstPtr& laserOdometry)
+void LaserMapping::laserOdometryHandler(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& laserOdometry)
 {
   _timeLaserOdometry = laserOdometry->header.stamp;
 
@@ -1061,7 +1061,7 @@ void LaserMapping::publishResult()
     _downSizeFilterCorner.filter(*_laserCloudSurroundDS);
 
     // publish new map cloud
-    publishCloudMsg(_pubLaserCloudSurround, *_laserCloudSurroundDS, _timeLaserOdometry, "/camera_init");
+    publishCloudMsg(_pubLaserCloudSurround, *_laserCloudSurroundDS, _timeLaserOdometry, "/loam_init");
   }
 
 
@@ -1072,7 +1072,7 @@ void LaserMapping::publishResult()
   }
 
   // publish transformed full resolution input cloud
-  publishCloudMsg(_pubLaserCloudFullRes, *_laserCloudFullRes, _timeLaserOdometry, "/camera_init");
+  publishCloudMsg(_pubLaserCloudFullRes, *_laserCloudFullRes, _timeLaserOdometry, "/loam_init");
 
 
   // publish odometry after mapped transformations

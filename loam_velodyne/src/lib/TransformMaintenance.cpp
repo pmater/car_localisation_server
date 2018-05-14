@@ -43,12 +43,15 @@ using std::atan2;
 
 TransformMaintenance::TransformMaintenance()
 {
-  // initialize odometry and odometry tf messages
-  _laserOdometry2.header.frame_id = "/camera_init";
-  _laserOdometry2.child_frame_id = "/camera";
+  // initialize odometry tf messages
+  _laserOdometryTrans2.frame_id_ = "/loam_init";
+  _laserOdometryTrans2.child_frame_id_ = "/loam";
 
-  _laserOdometryTrans2.frame_id_ = "/camera_init";
-  _laserOdometryTrans2.child_frame_id_ = "/camera";
+  tf2_ros::Buffer tfBuffer;
+  tf2_ros::TransformListener tf2_listener(tfBuffer);
+  ROS_INFO_STREAM("Waiting for TF: Integrated");
+  loam_init_to_map = tfBuffer.lookupTransform("map", "loam_init", ros::Time(0), ros::Duration(10.0));
+  ROS_INFO_STREAM("TF received");
 
 
   for (int i = 0; i < 6; i++) {
@@ -64,10 +67,11 @@ TransformMaintenance::TransformMaintenance()
 bool TransformMaintenance::setup(ros::NodeHandle &node, ros::NodeHandle &privateNode)
 {
   // advertise integrated laser odometry topic
-  _pubLaserOdometry2 = node.advertise<nav_msgs::Odometry> ("/integrated_to_init", 5);
+  _pubLaserOdometry2 = node.advertise<geometry_msgs::PoseWithCovarianceStamped> ("/integrated_to_init", 5);
+  _pubLaserOdometry2Map = node.advertise<geometry_msgs::PoseWithCovarianceStamped> ("/integrated_to_map", 5);
 
   // subscribe to laser odometry and mapping odometry topics
-  _subLaserOdometry = node.subscribe<nav_msgs::Odometry>
+  _subLaserOdometry = node.subscribe<geometry_msgs::PoseWithCovarianceStamped>
       ("/laser_odom_to_init", 5, &TransformMaintenance::laserOdometryHandler, this);
 
   _subOdomAftMapped = node.subscribe<nav_msgs::Odometry>
@@ -177,7 +181,7 @@ void TransformMaintenance::transformAssociateToMap()
 
 
 
-void TransformMaintenance::laserOdometryHandler(const nav_msgs::Odometry::ConstPtr& laserOdometry)
+void TransformMaintenance::laserOdometryHandler(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& laserOdometry)
 {
   double roll, pitch, yaw;
   geometry_msgs::Quaternion geoQuat = laserOdometry->pose.pose.orientation;
@@ -204,12 +208,39 @@ void TransformMaintenance::laserOdometryHandler(const nav_msgs::Odometry::ConstP
   _laserOdometry2.pose.pose.position.x = _transformMapped[3];
   _laserOdometry2.pose.pose.position.y = _transformMapped[4];
   _laserOdometry2.pose.pose.position.z = _transformMapped[5];
+  _laserOdometry2.header.frame_id = "loam_init";
   _pubLaserOdometry2.publish(_laserOdometry2);
+
+  geometry_msgs::PoseStamped msgTransformTemp;
+  msgTransformTemp.header = _laserOdometry2.header;
+  msgTransformTemp.pose.orientation.x = _laserOdometry2.pose.pose.orientation.x;
+  msgTransformTemp.pose.orientation.y = _laserOdometry2.pose.pose.orientation.y;
+  msgTransformTemp.pose.orientation.z = _laserOdometry2.pose.pose.orientation.z;
+  msgTransformTemp.pose.orientation.w = _laserOdometry2.pose.pose.orientation.w;
+  msgTransformTemp.pose.position.x = _laserOdometry2.pose.pose.position.x;
+  msgTransformTemp.pose.position.y = _laserOdometry2.pose.pose.position.y;
+  msgTransformTemp.pose.position.z = _laserOdometry2.pose.pose.position.z;
+
+  tf2::doTransform(msgTransformTemp, msgTransformTemp, loam_init_to_map); //Internally, LOAM has data in loam_init frame. Therefore, we need to transform it to map frame.
+  _laserOdometry2.header.frame_id = "map";
+  _laserOdometry2.pose.pose.orientation.x = msgTransformTemp.pose.orientation.x;
+  _laserOdometry2.pose.pose.orientation.y = msgTransformTemp.pose.orientation.y;
+  _laserOdometry2.pose.pose.orientation.z = msgTransformTemp.pose.orientation.z;
+  _laserOdometry2.pose.pose.orientation.w = msgTransformTemp.pose.orientation.w;
+  _laserOdometry2.pose.pose.position.x = msgTransformTemp.pose.position.x;
+  _laserOdometry2.pose.pose.position.y = msgTransformTemp.pose.position.y;
+  _laserOdometry2.pose.pose.position.z = msgTransformTemp.pose.position.z;
+  _pubLaserOdometry2Map.publish(_laserOdometry2);
+
 
   _laserOdometryTrans2.stamp_ = laserOdometry->header.stamp;
   _laserOdometryTrans2.setRotation(tf::Quaternion(-geoQuat.y, -geoQuat.z, geoQuat.x, geoQuat.w));
   _laserOdometryTrans2.setOrigin(tf::Vector3(_transformMapped[3], _transformMapped[4], _transformMapped[5]));
   _tfBroadcaster2.sendTransform(_laserOdometryTrans2);
+
+
+
+  //TODO: transform and publish
 }
 
 

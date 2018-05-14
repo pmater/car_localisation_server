@@ -39,11 +39,13 @@
 
 #include <ros/node_handle.h>
 #include <sensor_msgs/PointCloud2.h>
-#include <nav_msgs/Odometry.h>
+#include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <tf/transform_datatypes.h>
 #include <tf/transform_broadcaster.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2_ros/transform_listener.h>
 
 
 namespace loam {
@@ -196,13 +198,15 @@ private:
   Vector3 _imuShiftFromStart;
   Vector3 _imuVeloFromStart;
 
-  nav_msgs::Odometry _laserOdometryMsg;       ///< laser odometry message
+  geometry_msgs::PoseWithCovarianceStamped _laserOdometryMsg; ///< laser odometry message
+  geometry_msgs::TransformStamped loam_init_to_map;
   tf::StampedTransform _laserOdometryTrans;   ///< laser odometry transformation
 
   ros::Publisher _pubLaserCloudCornerLast;  ///< last corner cloud message publisher
   ros::Publisher _pubLaserCloudSurfLast;    ///< last surface cloud message publisher
   ros::Publisher _pubLaserCloudFullRes;     ///< full resolution cloud message publisher
   ros::Publisher _pubLaserOdometry;         ///< laser odometry publisher
+  ros::Publisher _pubLaserOdometryMap;      ///< laser odometry publisher
   tf::TransformBroadcaster _tfBroadcaster;  ///< laser odometry transform broadcaster
 
   ros::Subscriber _subCornerPointsSharp;      ///< sharp corner cloud message subscriber

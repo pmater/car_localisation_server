@@ -39,6 +39,7 @@
 
 #include <ros/ros.h>
 #include <nav_msgs/Odometry.h>
+#include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <sensor_msgs/Imu.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <tf/transform_datatypes.h>
@@ -120,7 +121,7 @@ public:
    *
    * @param laserOdometry the new laser odometry message
    */
-  void laserOdometryHandler(const nav_msgs::Odometry::ConstPtr& laserOdometry);
+  void laserOdometryHandler(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& laserOdometry);
 
   /** \brief Handler method for IMU messages.
    *

@@ -36,7 +36,10 @@
 
 #include <ros/node_handle.h>
 #include <nav_msgs/Odometry.h>
+#include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <tf/transform_broadcaster.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2_ros/transform_listener.h>
 
 namespace loam {
 
@@ -59,7 +62,7 @@ public:
    *
    * @param laserOdometry the new laser odometry
    */
-  void laserOdometryHandler(const nav_msgs::Odometry::ConstPtr& laserOdometry);
+  void laserOdometryHandler(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& laserOdometry);
 
   /** \brief Handler method for mapping odometry messages.
    *
@@ -79,10 +82,12 @@ private:
   float _transformBefMapped[6];
   float _transformAftMapped[6];
 
-  nav_msgs::Odometry _laserOdometry2;         ///< latest integrated laser odometry message
+  geometry_msgs::PoseWithCovarianceStamped _laserOdometry2;         ///< latest integrated laser odometry message
   tf::StampedTransform _laserOdometryTrans2;  ///< latest integrated laser odometry transformation
+  geometry_msgs::TransformStamped loam_init_to_map;
 
   ros::Publisher _pubLaserOdometry2;          ///< integrated laser odometry publisher
+  ros::Publisher _pubLaserOdometry2Map;          ///< integrated laser odometry publisher, map frame
   tf::TransformBroadcaster _tfBroadcaster2;   ///< integrated laser odometry transformation broadcaster
 
   ros::Subscriber _subLaserOdometry;    ///< (high frequency) laser odometry subscriber

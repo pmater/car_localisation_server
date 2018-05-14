@@ -70,12 +70,15 @@ LaserOdometry::LaserOdometry(const float& scanPeriod,
         _laserCloudOri(new pcl::PointCloud<pcl::PointXYZI>()),
         _coeffSel(new pcl::PointCloud<pcl::PointXYZI>())
 {
-  // initialize odometry and odometry tf messages
-  _laserOdometryMsg.header.frame_id = "/camera_init";
-  _laserOdometryMsg.child_frame_id = "/laser_odom";
+  // initialize odometry tf messages
+  _laserOdometryTrans.frame_id_ = "/loam_init";
+  _laserOdometryTrans.child_frame_id_ = "/loam_velodyne";
 
-  _laserOdometryTrans.frame_id_ = "/camera_init";
-  _laserOdometryTrans.child_frame_id_ = "/laser_odom";
+  tf2_ros::Buffer tfBuffer;
+  tf2_ros::TransformListener tf2_listener(tfBuffer);
+  ROS_INFO_STREAM("Waiting for TF: Odom");
+  loam_init_to_map = tfBuffer.lookupTransform("map", "loam_init", ros::Time(0), ros::Duration(10.0));
+  ROS_INFO_STREAM("TF received");
 }
 
 
@@ -142,8 +145,8 @@ bool LaserOdometry::setup(ros::NodeHandle &node,
   _pubLaserCloudCornerLast = node.advertise<sensor_msgs::PointCloud2>("/laser_cloud_corner_last", 2);
   _pubLaserCloudSurfLast   = node.advertise<sensor_msgs::PointCloud2>("/laser_cloud_surf_last", 2);
   _pubLaserCloudFullRes    = node.advertise<sensor_msgs::PointCloud2>("/velodyne_cloud_3", 2);
-  _pubLaserOdometry        = node.advertise<nav_msgs::Odometry>("/laser_odom_to_init", 5);
-
+  _pubLaserOdometry        = node.advertise<geometry_msgs::PoseWithCovarianceStamped>("/laser_odom_to_init", 5);
+  _pubLaserOdometryMap     = node.advertise<geometry_msgs::PoseWithCovarianceStamped>("/laser_odom_map", 5);
 
   // subscribe to scan registration topics
   _subCornerPointsSharp = node.subscribe<sensor_msgs::PointCloud2>
@@ -896,7 +899,30 @@ void LaserOdometry::publishResult()
   _laserOdometryMsg.pose.pose.position.x = _transformSum.pos.x();
   _laserOdometryMsg.pose.pose.position.y = _transformSum.pos.y();
   _laserOdometryMsg.pose.pose.position.z = _transformSum.pos.z();
+
+  _laserOdometryMsg.header.frame_id = "loam_init";
   _pubLaserOdometry.publish(_laserOdometryMsg);
+
+  geometry_msgs::PoseStamped msgTransformTemp;
+  msgTransformTemp.header = _laserOdometryMsg.header;
+  msgTransformTemp.pose.orientation.x = _laserOdometryMsg.pose.pose.orientation.x;
+  msgTransformTemp.pose.orientation.y = _laserOdometryMsg.pose.pose.orientation.y;
+  msgTransformTemp.pose.orientation.z = _laserOdometryMsg.pose.pose.orientation.z;
+  msgTransformTemp.pose.orientation.w = _laserOdometryMsg.pose.pose.orientation.w;
+  msgTransformTemp.pose.position.x = _laserOdometryMsg.pose.pose.position.x;
+  msgTransformTemp.pose.position.y = _laserOdometryMsg.pose.pose.position.y;
+  msgTransformTemp.pose.position.z = _laserOdometryMsg.pose.pose.position.z;
+
+  tf2::doTransform(msgTransformTemp, msgTransformTemp, loam_init_to_map); //Internally, LOAM has data in loam_init frame. Therefore, we need to transform it to map frame.
+  _laserOdometryMsg.header.frame_id = "map";
+  _laserOdometryMsg.pose.pose.orientation.x = msgTransformTemp.pose.orientation.x;
+  _laserOdometryMsg.pose.pose.orientation.y = msgTransformTemp.pose.orientation.y;
+  _laserOdometryMsg.pose.pose.orientation.z = msgTransformTemp.pose.orientation.z;
+  _laserOdometryMsg.pose.pose.orientation.w = msgTransformTemp.pose.orientation.w;
+  _laserOdometryMsg.pose.pose.position.x = msgTransformTemp.pose.position.x;
+  _laserOdometryMsg.pose.pose.position.y = msgTransformTemp.pose.position.y;
+  _laserOdometryMsg.pose.pose.position.z = msgTransformTemp.pose.position.z;
+  _pubLaserOdometryMap.publish(_laserOdometryMsg);
 
   _laserOdometryTrans.stamp_ = _timeSurfPointsLessFlat;
   _laserOdometryTrans.setRotation(tf::Quaternion(-geoQuat.y, -geoQuat.z, geoQuat.x, geoQuat.w));
