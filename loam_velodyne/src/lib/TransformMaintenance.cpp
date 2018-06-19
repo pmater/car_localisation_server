@@ -222,25 +222,40 @@ void TransformMaintenance::laserOdometryHandler(const geometry_msgs::PoseWithCov
   msgTransformTemp.pose.position.z = _laserOdometry2.pose.pose.position.z;
 
   tf2::doTransform(msgTransformTemp, msgTransformTemp, loam_init_to_map); //Internally, LOAM has data in loam_init frame. Therefore, we need to transform it to map frame.
+
+  tf::Quaternion q = tf::createQuaternionFromRPY(0, 0, -3.141592654 / 2);
+  geometry_msgs::TransformStamped quatRot;
+  quatRot.transform.translation.x = 0;
+  quatRot.transform.translation.y = 0;
+  quatRot.transform.translation.z = 0;
+  quatRot.transform.rotation.x = q.x();
+  quatRot.transform.rotation.y = q.y();
+  quatRot.transform.rotation.z = q.z();
+  quatRot.transform.rotation.w = q.w();
+
+  geometry_msgs::PoseStamped msgQuaternionTemp;
+  msgQuaternionTemp.pose.orientation.x = msgTransformTemp.pose.orientation.x;
+  msgQuaternionTemp.pose.orientation.y = msgTransformTemp.pose.orientation.y;
+  msgQuaternionTemp.pose.orientation.z = msgTransformTemp.pose.orientation.z;
+  msgQuaternionTemp.pose.orientation.w = msgTransformTemp.pose.orientation.w;
+  tf2::doTransform(msgQuaternionTemp, msgQuaternionTemp, quatRot);
+
   _laserOdometry2.header.frame_id = "map";
-  _laserOdometry2.pose.pose.orientation.x = msgTransformTemp.pose.orientation.x;
-  _laserOdometry2.pose.pose.orientation.y = msgTransformTemp.pose.orientation.y;
-  _laserOdometry2.pose.pose.orientation.z = msgTransformTemp.pose.orientation.z;
-  _laserOdometry2.pose.pose.orientation.w = msgTransformTemp.pose.orientation.w;
   _laserOdometry2.pose.pose.position.x = msgTransformTemp.pose.position.x;
   _laserOdometry2.pose.pose.position.y = msgTransformTemp.pose.position.y;
   _laserOdometry2.pose.pose.position.z = msgTransformTemp.pose.position.z;
+  _laserOdometry2.pose.pose.orientation.x = msgQuaternionTemp.pose.orientation.x;
+  _laserOdometry2.pose.pose.orientation.y = msgQuaternionTemp.pose.orientation.y;
+  _laserOdometry2.pose.pose.orientation.z = msgQuaternionTemp.pose.orientation.z;
+  _laserOdometry2.pose.pose.orientation.w = msgQuaternionTemp.pose.orientation.w;
   _pubLaserOdometry2Map.publish(_laserOdometry2);
+
 
 
   _laserOdometryTrans2.stamp_ = laserOdometry->header.stamp;
   _laserOdometryTrans2.setRotation(tf::Quaternion(-geoQuat.y, -geoQuat.z, geoQuat.x, geoQuat.w));
   _laserOdometryTrans2.setOrigin(tf::Vector3(_transformMapped[3], _transformMapped[4], _transformMapped[5]));
   _tfBroadcaster2.sendTransform(_laserOdometryTrans2);
-
-
-
-  //TODO: transform and publish
 }
 
 

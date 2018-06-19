@@ -899,29 +899,33 @@ void LaserOdometry::publishResult()
   _laserOdometryMsg.pose.pose.position.x = _transformSum.pos.x();
   _laserOdometryMsg.pose.pose.position.y = _transformSum.pos.y();
   _laserOdometryMsg.pose.pose.position.z = _transformSum.pos.z();
-
   _laserOdometryMsg.header.frame_id = "loam_init";
   _pubLaserOdometry.publish(_laserOdometryMsg);
 
   geometry_msgs::PoseStamped msgTransformTemp;
   msgTransformTemp.header = _laserOdometryMsg.header;
-  msgTransformTemp.pose.orientation.x = _laserOdometryMsg.pose.pose.orientation.x;
-  msgTransformTemp.pose.orientation.y = _laserOdometryMsg.pose.pose.orientation.y;
-  msgTransformTemp.pose.orientation.z = _laserOdometryMsg.pose.pose.orientation.z;
-  msgTransformTemp.pose.orientation.w = _laserOdometryMsg.pose.pose.orientation.w;
-  msgTransformTemp.pose.position.x = _laserOdometryMsg.pose.pose.position.x;
-  msgTransformTemp.pose.position.y = _laserOdometryMsg.pose.pose.position.y;
-  msgTransformTemp.pose.position.z = _laserOdometryMsg.pose.pose.position.z;
+  msgTransformTemp.pose.orientation = _laserOdometryMsg.pose.pose.orientation;
+  msgTransformTemp.pose.position = _laserOdometryMsg.pose.pose.position;
 
   tf2::doTransform(msgTransformTemp, msgTransformTemp, loam_init_to_map); //Internally, LOAM has data in loam_init frame. Therefore, we need to transform it to map frame.
+
+  tf::Quaternion q = tf::createQuaternionFromRPY(0, 0, -3.141592654 / 2);
+  geometry_msgs::TransformStamped quatRot;
+  quatRot.transform.translation.x = 0;
+  quatRot.transform.translation.y = 0;
+  quatRot.transform.translation.z = 0;
+  quatRot.transform.rotation.x = q.x();
+  quatRot.transform.rotation.y = q.y();
+  quatRot.transform.rotation.z = q.z();
+  quatRot.transform.rotation.w = q.w();
+
+  geometry_msgs::PoseStamped msgQuaternionTemp;
+  msgQuaternionTemp.pose.orientation = msgTransformTemp.pose.orientation;
+  tf2::doTransform(msgQuaternionTemp, msgQuaternionTemp, quatRot);
+
   _laserOdometryMsg.header.frame_id = "map";
-  _laserOdometryMsg.pose.pose.orientation.x = msgTransformTemp.pose.orientation.x;
-  _laserOdometryMsg.pose.pose.orientation.y = msgTransformTemp.pose.orientation.y;
-  _laserOdometryMsg.pose.pose.orientation.z = msgTransformTemp.pose.orientation.z;
-  _laserOdometryMsg.pose.pose.orientation.w = msgTransformTemp.pose.orientation.w;
-  _laserOdometryMsg.pose.pose.position.x = msgTransformTemp.pose.position.x;
-  _laserOdometryMsg.pose.pose.position.y = msgTransformTemp.pose.position.y;
-  _laserOdometryMsg.pose.pose.position.z = msgTransformTemp.pose.position.z;
+  _laserOdometryMsg.pose.pose.position = msgTransformTemp.pose.position;
+  _laserOdometryMsg.pose.pose.orientation = msgQuaternionTemp.pose.orientation;
   _pubLaserOdometryMap.publish(_laserOdometryMsg);
 
   _laserOdometryTrans.stamp_ = _timeSurfPointsLessFlat;

@@ -1,7 +1,0 @@
- <launch>
-    <node pkg="lms_package" type="lms_position_tf" name="lms_position_tf"/>
-    <node pkg="lms_package" type="lms_publish" name="lms_publish" output="screen"/>
-    <node pkg="lms_package" type="pointcloud" name="pointcloud"/>
-
-  </launch>
-

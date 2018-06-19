@@ -1,0 +1,8 @@
+<launch>
+
+	<node pkg="odom_to_loam" type="odom_to_loam" name="odom_to_loam" output="screen" > 	  
+	</node>	
+	
+</launch>
+
+
